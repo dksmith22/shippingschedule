@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping Priority Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #091018;
+      --panel: #111b26;
+      --panel-soft: #172331;
+      --line: rgba(255,255,255,.10);
+      --text: #f5f8fb;
+      --muted: #9eacba;
+      --green: #44d18a;
+      --red: #ff6262;
+      --amber: #ffb84d;
+      --yellow: #f5d85b;
+      --blue: #62a8ff;
+      --shadow: 0 16px 44px rgba(0,0,0,.30);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(50,135,255,.12), transparent 32%),
+        radial-gradient(circle at 90% 0%, rgba(68,209,138,.09), transparent 30%),
+        linear-gradient(145deg, #081018, #0c1520 55%, #081018);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 15px 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(17,27,38,.94);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #4ad890, #208d5d);
+      color: white;
+      font-size: 25px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(23px, 2.3vw, 36px);
+      letter-spacing: -.045em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .summary {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .summary-pill {
+      min-width: 104px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.035);
+      text-align: center;
+    }
+
+    .summary-number {
+      display: block;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .summary-label {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      color: #9aebbd;
+      background: rgba(68,209,138,.10);
+      border: 1px solid rgba(68,209,138,.28);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(68,209,138,.10);
+    }
+
+    .board {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .priority-lane {
+      display: grid;
+      grid-template-columns: 155px minmax(0, 1fr);
+      min-height: 178px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(17,27,38,.90);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .lane-label {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 12px;
+      background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 24%, #111b26), #111b26 72%);
+      border-right: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .lane-label::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 7px;
+      background: var(--accent);
+    }
+
+    .priority-number {
+      font-size: 40px;
+      font-weight: 900;
+      line-height: .95;
+      color: var(--accent);
+      letter-spacing: -.05em;
+    }
+
+    .priority-title {
+      margin-top: 7px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .priority-count {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .lane-cards {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(340px, 1fr);
+      gap: 12px;
+      padding: 12px;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.25) transparent;
+    }
+
+    .lane-cards::-webkit-scrollbar { height: 8px; }
+    .lane-cards::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,.22);
+      border-radius: 999px;
+    }
+
+    .job-card {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 17px 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-top: 4px solid var(--accent);
+      border-radius: 14px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.045), rgba(255,255,255,.01)),
+        var(--panel-soft);
+      box-shadow: 0 8px 22px rgba(0,0,0,.20);
+    }
+
+    .card-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+    }
+
+    .customer-label,
+    .so-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+    }
+
+    .customer {
+      font-size: clamp(18px, 1.45vw, 24px);
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: -.025em;
+      overflow-wrap: anywhere;
+    }
+
+    .so-header {
+      min-width: max-content;
+      text-align: right;
+    }
+
+    .so-number {
+      font-size: clamp(17px, 1.3vw, 22px);
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -.015em;
+      color: #ffffff;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 680px) {
+      .card-heading {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .so-header {
+        text-align: left;
+      }
+    }
+
+    .trenchsafe-yes {
+      color: #9aebbd;
+    }
+
+    .trenchsafe-no {
+      color: #c5ced7;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px 14px;
+      margin-top: 13px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    .detail { min-width: 0; }
+
+    .detail-label {
+      display: block;
+      margin-bottom: 5px;
+      color: #b8c4cf;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+    }
+
+    .detail-value {
+      display: block;
+      color: #ffffff;
+      font-size: clamp(16px, 1.15vw, 20px);
+      line-height: 1.15;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .notes-section {
+      grid-column: 1 / -1;
+      margin-top: 3px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 10px;
+      background: rgba(0,0,0,.16);
+    }
+
+    .notes-value {
+      min-height: 38px;
+      color: #f5f8fb;
+      font-size: clamp(14px, 1vw, 17px);
+      line-height: 1.35;
+      font-weight: 700;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .notes-empty {
+      color: #7f8d9b;
+      font-style: italic;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      justify-self: start;
+      margin-top: 12px;
+      padding: 6px 9px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .past-due {
+      color: #ffb2b2;
+      background: rgba(255,98,98,.15);
+      border: 1px solid rgba(255,98,98,.35);
+    }
+
+    .due-today {
+      color: #ffe39b;
+      background: rgba(245,216,91,.13);
+      border: 1px solid rgba(245,216,91,.32);
+    }
+
+    .upcoming {
+      color: #a9cfff;
+      background: rgba(98,168,255,.12);
+      border: 1px solid rgba(98,168,255,.28);
+    }
+
+    .empty-board, .error-board {
+      min-height: 420px;
+      display: grid;
+      place-items: center;
+      padding: 35px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(17,27,38,.90);
+      color: var(--muted);
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .error-board { color: #ffb2b2; }
+
+    @media (max-width: 850px) {
+      .topbar { align-items: flex-start; }
+      .summary { display: none; }
+      .priority-lane { grid-template-columns: 112px minmax(0, 1fr); }
+      .priority-number { font-size: 32px; }
+      .lane-cards { grid-auto-columns: minmax(245px, 82vw); }
+    }
+
+    @media (max-width: 560px) {
+      .app { padding: 9px; gap: 9px; }
+      .topbar { padding: 13px; }
+      .brand-icon { width: 42px; height: 42px; flex-basis: 42px; }
+      .live-pill { display: none; }
+      .priority-lane { grid-template-columns: 82px minmax(0, 1fr); min-height: 165px; }
+      .priority-title { font-size: 9px; }
+      .priority-count { font-size: 9px; }
+      .lane-cards { padding: 9px; gap: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">➜</div>
+        <div>
+          <h1>Shipping Priority Board</h1>
+          <div class="subtitle">Shipping workstation • priorities 1 and higher only</div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-pill">
+          <span class="summary-number" id="jobCount">0</span>
+          <span class="summary-label">Open Jobs</span>
+        </div>
+        <div class="summary-pill">
+          <span class="summary-number" id="priorityCount">0</span>
+          <span class="summary-label">Priority Groups</span>
+        </div>
+        <div class="live-pill">
+          <span class="live-dot"></span>
+          <span id="lastUpdated">Loading…</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="board" id="board" aria-live="polite"></section>
+  </main>
+
+  <script>
+    const DATA_URL = "https://raw.githubusercontent.com/dksmith22/sharepoint-json-feed-all/main/sharepointdata.json";
+
+    const priorityColors = {
+      1: "#ff6262",
+      2: "#ff9f43",
+      3: "#f5d85b",
+      4: "#62a8ff",
+      5: "#8f9cab",
+      none: "#778391"
+    };
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function parseDate(value) {
+      if (!value) return null;
+      const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatDate(value) {
+      const date = parseDate(value);
+      return date ? date.toLocaleDateString("en-US") : "Not listed";
+    }
+
+    function startOfToday() {
+      const today = new Date();
+      return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    }
+
+    function getDateStatus(value) {
+      const due = parseDate(value);
+      if (!due) return { className: "upcoming", text: "No Due Date" };
+
+      const today = startOfToday();
+      if (due < today) return { className: "past-due", text: "Past Due" };
+      if (due.getTime() === today.getTime()) return { className: "due-today", text: "Due Today" };
+      return { className: "upcoming", text: "Upcoming" };
+    }
+
+    function isComplete(row) {
+      const value = row["Complete"];
+      return value === true ||
+        String(value ?? "").trim().toUpperCase() === "YES" ||
+        (typeof value === "object" && String(value?.Value ?? "").trim().toUpperCase() === "YES");
+    }
+
+    function getPriority(row) {
+      const raw = String(row["SHIPPING PRIORITY"] ?? "").trim();
+      if (!raw) return null;
+      const number = Number(raw);
+      return Number.isFinite(number) ? number : raw;
+    }
+
+    function prioritySortValue(priority) {
+      if (priority === null) return Number.MAX_SAFE_INTEGER;
+      return typeof priority === "number" ? priority : Number.MAX_SAFE_INTEGER - 1;
+    }
+
+    function priorityColor(priority) {
+      return priorityColors[priority] || (priority === null ? priorityColors.none : "#8f9cab");
+    }
+
+    function jobCard(row, priority) {
+      const status = getDateStatus(row["Due Date"]);
+      const accent = priorityColor(priority);
+      const customer = escapeHTML(row["Customer"] || "Customer Not Listed");
+      const soNumber = escapeHTML(row["SO Number"] || "Not listed");
+      const salesPerson = escapeHTML(row["Sales Person"] || "Not listed");
+      const trenchsafeRaw = String(row["Trenchsafe"] ?? "").trim();
+      const trenchsafe = trenchsafeRaw || "Not listed";
+      const trenchsafeClass = trenchsafeRaw.toUpperCase() === "YES" ? "trenchsafe-yes" : "trenchsafe-no";
+      const notesRaw = String(row["Notes"] ?? row["notes"] ?? "").trim();
+      const notes = notesRaw ? escapeHTML(notesRaw) : '<span class="notes-empty">No notes listed</span>';
+
+      return `
+        <article class="job-card" style="--accent:${accent}">
+          <div class="card-heading">
+            <div>
+              <span class="customer-label">Customer</span>
+              <div class="customer">${customer}</div>
+            </div>
+            <div class="so-header">
+              <span class="so-label">SO Number</span>
+              <div class="so-number">${soNumber}</div>
+            </div>
+          </div>
+          <div class="details">
+            <div class="detail">
+              <span class="detail-label">Due Date</span>
+              <span class="detail-value">${formatDate(row["Due Date"])}</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">Sales Person</span>
+              <span class="detail-value">${salesPerson}</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">Shipping Priority</span>
+              <span class="detail-value">${priority === null ? "Not assigned" : escapeHTML(priority)}</span>
+            </div>
+            <div class="detail">
+              <span class="detail-label">TrenchSafe</span>
+              <span class="detail-value ${trenchsafeClass}">${escapeHTML(trenchsafe)}</span>
+            </div>
+            <div class="notes-section">
+              <span class="detail-label">Notes</span>
+              <div class="notes-value">${notes}</div>
+            </div>
+          </div>
+          <div class="status-badge ${status.className}">${status.text}</div>
+        </article>`;
+    }
+
+    function lane(priority, jobs) {
+      const accent = priorityColor(priority);
+      const displayPriority = priority === null ? "—" : escapeHTML(priority);
+      const title = priority === null ? "Unprioritized" : "Priority";
+      const countText = `${jobs.length} ${jobs.length === 1 ? "job" : "jobs"}`;
+
+      return `
+        <section class="priority-lane" style="--accent:${accent}">
+          <div class="lane-label">
+            <div class="priority-number">${displayPriority}</div>
+            <div class="priority-title">${title}</div>
+            <div class="priority-count">${countText}</div>
+          </div>
+          <div class="lane-cards">
+            ${jobs.map(row => jobCard(row, priority)).join("")}
+          </div>
+        </section>`;
+    }
+
+    function deduplicateJobs(rows) {
+      const seen = new Set();
+      return rows.filter((row, index) => {
+        const so = String(row["SO Number"] ?? "").trim();
+        const key = so
+          ? `SO:${so}`
+          : `ROW:${row["Customer"] ?? ""}|${row["Due Date"] ?? ""}|${row["Sales Person"] ?? ""}|${index}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function isShippingWorkstation(row) {
+      // Strict match only: the Workstation field must equal SHIPPING.
+      // This intentionally rejects UNASSIGNED, SAW, FAB, KOMO, and every other value.
+      const workstation = row && typeof row["Workstation"] === "string"
+        ? row["Workstation"].trim().toUpperCase()
+        : "";
+      return workstation === "SHIPPING";
+    }
+
+    function renderBoard(data) {
+      const board = document.getElementById("board");
+      const rows = Array.isArray(data) ? data : [];
+
+      let jobs = rows.filter(row => {
+        const priority = getPriority(row);
+        return isShippingWorkstation(row) &&
+          !isComplete(row) &&
+          typeof priority === "number" &&
+          priority > 0;
+      });
+
+      jobs = deduplicateJobs(jobs);
+      jobs.sort((a, b) => {
+        const priorityDifference = prioritySortValue(getPriority(a)) - prioritySortValue(getPriority(b));
+        if (priorityDifference !== 0) return priorityDifference;
+
+        const dateA = parseDate(a["Due Date"])?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const dateB = parseDate(b["Due Date"])?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        if (dateA !== dateB) return dateA - dateB;
+
+        return String(a["Customer"] ?? "").localeCompare(String(b["Customer"] ?? ""));
+      });
+
+      const groups = new Map();
+      jobs.forEach(row => {
+        const priority = getPriority(row);
+        if (!groups.has(priority)) groups.set(priority, []);
+        groups.get(priority).push(row);
+      });
+
+      const sortedGroups = [...groups.entries()].sort((a, b) =>
+        prioritySortValue(a[0]) - prioritySortValue(b[0])
+      );
+
+      document.getElementById("jobCount").textContent = jobs.length;
+      document.getElementById("priorityCount").textContent = sortedGroups.length;
+
+      if (!jobs.length) {
+        board.innerHTML = `<div class="empty-board">No incomplete jobs are currently assigned to the Shipping workstation.</div>`;
+        return;
+      }
+
+      board.innerHTML = sortedGroups.map(([priority, priorityJobs]) => lane(priority, priorityJobs)).join("");
+    }
+
+    async function fetchData() {
+      const board = document.getElementById("board");
+      try {
+        const response = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Data request failed: ${response.status}`);
+        const data = await response.json();
+        renderBoard(data);
+        document.getElementById("lastUpdated").textContent =
+          `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+      } catch (error) {
+        console.error(error);
+        board.innerHTML = `<div class="error-board">The shipping schedule could not be loaded. Please check the data connection.</div>`;
+        document.getElementById("lastUpdated").textContent = "Connection error";
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 300000);
+  </script>
+</body>
+</html>
