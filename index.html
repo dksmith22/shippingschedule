@@ -24,7 +24,7 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { min-height: 100%; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
 
     body {
       margin: 0;
@@ -37,11 +37,14 @@
     }
 
     .app {
-      min-height: 100vh;
+      width: 100vw;
+      height: 100dvh;
+      min-height: 0;
       display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 14px;
-      padding: 16px;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: clamp(7px, .75vh, 12px);
+      padding: clamp(8px, .85vw, 16px);
+      overflow: hidden;
     }
 
     .topbar {
@@ -151,15 +154,17 @@
 
     .board {
       min-height: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      display: grid;
+      grid-auto-rows: minmax(0, 1fr);
+      gap: clamp(7px, .75vh, 12px);
+      overflow: hidden;
     }
 
     .priority-lane {
       display: grid;
       grid-template-columns: 155px minmax(0, 1fr);
-      min-height: 178px;
+      min-height: 0;
+      height: 100%;
       border: 1px solid var(--line);
       border-radius: 18px;
       background: rgba(17,27,38,.90);
@@ -211,28 +216,45 @@
     }
 
     .lane-cards {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(340px, 1fr);
-      gap: 12px;
-      padding: 12px;
-      overflow-x: auto;
-      overscroll-behavior-inline: contain;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,.25) transparent;
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      padding: clamp(7px, .65vw, 12px);
+      overflow: hidden;
     }
 
-    .lane-cards::-webkit-scrollbar { height: 8px; }
-    .lane-cards::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,.22);
+    .lane-track {
+      height: 100%;
+      display: flex;
+      gap: clamp(7px, .65vw, 12px);
+      transition: transform 650ms cubic-bezier(.2,.75,.2,1);
+      will-change: transform;
+    }
+
+    .lane-page-indicator {
+      position: absolute;
+      right: 12px;
+      bottom: 7px;
+      z-index: 4;
+      padding: 3px 7px;
       border-radius: 999px;
+      background: rgba(0,0,0,.56);
+      border: 1px solid rgba(255,255,255,.18);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      pointer-events: none;
     }
 
     .job-card {
+      flex: 0 0 calc((100% - (var(--cards-per-page, 3) - 1) * clamp(7px, .65vw, 12px)) / var(--cards-per-page, 3));
       min-width: 0;
+      height: 100%;
+      overflow: hidden;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      padding: 17px 18px;
+      padding: clamp(10px, .85vw, 17px) clamp(11px, .95vw, 18px);
       border: 1px solid rgba(255,255,255,.10);
       border-top: 4px solid var(--accent);
       border-radius: 14px;
@@ -306,9 +328,9 @@
     .details {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 9px 14px;
-      margin-top: 13px;
-      padding-top: 12px;
+      gap: clamp(5px, .55vh, 9px) clamp(8px, .7vw, 14px);
+      margin-top: clamp(7px, .7vh, 13px);
+      padding-top: clamp(7px, .65vh, 12px);
       border-top: 1px solid rgba(255,255,255,.08);
     }
 
@@ -343,7 +365,12 @@
     }
 
     .notes-value {
-      min-height: 38px;
+      min-height: 0;
+      max-height: 3.9em;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
       color: #f5f8fb;
       font-size: clamp(14px, 1vw, 17px);
       line-height: 1.35;
@@ -410,6 +437,30 @@
       .priority-lane { grid-template-columns: 112px minmax(0, 1fr); }
       .priority-number { font-size: 32px; }
       .lane-cards { grid-auto-columns: minmax(245px, 82vw); }
+    }
+
+    /* TV display tuning: designed for 16:9 screens such as 1920×1080 and 3840×2160. */
+    @media (min-width: 1200px) and (min-aspect-ratio: 16/10) {
+      .topbar { padding-block: clamp(9px, 1.05vh, 15px); }
+      .brand-icon { width: clamp(40px, 2.5vw, 48px); height: clamp(40px, 2.5vw, 48px); flex-basis: clamp(40px, 2.5vw, 48px); }
+      .priority-lane { grid-template-columns: clamp(112px, 8vw, 155px) minmax(0, 1fr); }
+      .lane-label { padding: clamp(8px, 1vh, 18px) 10px; }
+      .priority-number { font-size: clamp(28px, 2.15vw, 40px); }
+      .details { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .notes-section { grid-column: 1 / -1; }
+      .status-badge { margin-top: clamp(5px, .55vh, 12px); }
+    }
+
+    @media (max-height: 760px) {
+      .subtitle, .summary-label { display: none; }
+      .topbar { padding: 8px 13px; }
+      .brand-icon { width: 38px; height: 38px; flex-basis: 38px; font-size: 20px; }
+      .priority-title, .priority-count { margin-top: 3px; }
+      .card-heading { padding-bottom: 6px; }
+      .customer-label, .so-label, .detail-label { margin-bottom: 2px; font-size: 9px; }
+      .notes-section { padding: 6px 8px; }
+      .notes-value { -webkit-line-clamp: 2; max-height: 2.7em; }
+      .status-badge { padding: 4px 7px; font-size: 9px; }
     }
 
     @media (max-width: 560px) {
@@ -590,7 +641,10 @@
             <div class="priority-count">${countText}</div>
           </div>
           <div class="lane-cards">
-            ${jobs.map(row => jobCard(row, priority)).join("")}
+            <div class="lane-track">
+              ${jobs.map(row => jobCard(row, priority)).join("")}
+            </div>
+            <div class="lane-page-indicator" hidden></div>
           </div>
         </section>`;
     }
@@ -616,6 +670,65 @@
         : "";
       return workstation === "SHIPPING";
     }
+
+    const laneTimers = new Set();
+
+    function clearLaneCarousels() {
+      laneTimers.forEach(timer => clearInterval(timer));
+      laneTimers.clear();
+    }
+
+    function cardsPerPageForWidth(width) {
+      if (width >= 1500) return 4;
+      if (width >= 1050) return 3;
+      if (width >= 700) return 2;
+      return 1;
+    }
+
+    function setupLaneCarousels() {
+      clearLaneCarousels();
+
+      document.querySelectorAll(".lane-cards").forEach((viewport, laneIndex) => {
+        const track = viewport.querySelector(".lane-track");
+        const cards = [...viewport.querySelectorAll(".job-card")];
+        const indicator = viewport.querySelector(".lane-page-indicator");
+        if (!track || !cards.length) return;
+
+        const perPage = Math.min(cardsPerPageForWidth(viewport.clientWidth), cards.length);
+        track.style.setProperty("--cards-per-page", perPage);
+        const pageCount = Math.ceil(cards.length / perPage);
+        let page = 0;
+
+        const showPage = () => {
+          const firstCard = cards[0];
+          const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || 0);
+          const step = firstCard.getBoundingClientRect().width + gap;
+          const startIndex = page * perPage;
+          track.style.transform = `translateX(${-startIndex * step}px)`;
+          if (pageCount > 1) {
+            indicator.hidden = false;
+            indicator.textContent = `${page + 1} / ${pageCount}`;
+          } else {
+            indicator.hidden = true;
+          }
+        };
+
+        showPage();
+        if (pageCount > 1) {
+          const timer = setInterval(() => {
+            page = (page + 1) % pageCount;
+            showPage();
+          }, 9000 + laneIndex * 750);
+          laneTimers.add(timer);
+        }
+      });
+    }
+
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(setupLaneCarousels, 180);
+    });
 
     function renderBoard(data) {
       const board = document.getElementById("board");
@@ -656,11 +769,13 @@
       document.getElementById("priorityCount").textContent = sortedGroups.length;
 
       if (!jobs.length) {
+        clearLaneCarousels();
         board.innerHTML = `<div class="empty-board">No incomplete jobs are currently assigned to the Shipping workstation.</div>`;
         return;
       }
 
       board.innerHTML = sortedGroups.map(([priority, priorityJobs]) => lane(priority, priorityJobs)).join("");
+      requestAnimationFrame(setupLaneCarousels);
     }
 
     async function fetchData() {
@@ -673,6 +788,7 @@
         document.getElementById("lastUpdated").textContent =
           `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
       } catch (error) {
+        clearLaneCarousels();
         console.error(error);
         board.innerHTML = `<div class="error-board">The shipping schedule could not be loaded. Please check the data connection.</div>`;
         document.getElementById("lastUpdated").textContent = "Connection error";
